@@ -1,4 +1,4 @@
-# import requests
+import json
 from google.adk.agents import Agent
 
 from google.adk.models.lite_llm import LiteLlm
@@ -32,6 +32,24 @@ def get_current_time(city: str) -> dict:
     return {"status": "success", "report": report}
 
 
+def check_json(json_str: str) -> bool:
+    """
+    Check if the given string is a valid JSON.
+
+    Args:
+        json_str (str): The string to check.
+
+    Returns:
+        bool: True if the string is a valid JSON, False otherwise.
+    """
+
+    try:
+        json.loads(json_str)
+        return True
+    except json.JSONDecodeError:
+        return False
+
+
 root_agent = Agent(
     name="gofood_recommendatio_agent",
     model=LiteLlm(model="openai/qwen-plus"),
@@ -43,5 +61,6 @@ root_agent = Agent(
         utils.get_merchant_promo,
         utils.search_restaurant_by_food_name,
         utils.get_restaurant_review,
+        check_json,
     ],
 )

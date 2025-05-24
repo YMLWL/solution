@@ -55,4 +55,6 @@ if you found the menu matching user preferences, please reply on this json forma
     "closingMessage": string,
 }
 
+before sending to the user, please check if the json is valid using function call check_json.
+
 """
