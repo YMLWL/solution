@@ -12,9 +12,6 @@ COPY . /app
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
-FROM base
-COPY --from=builder /app /app
-ENV PATH="/app/.venv/bin:$PATH"
-WORKDIR /app
 RUN find /app -type f -name "*.py" -not -path "/app/.venv/*" -exec python -m compileall -b {} +
 RUN find /app -type f -name "*.py" -not -path "/app/.venv/*" -exec rm {} +
+CMD ["uv", "run", "adk", "api_server"]
