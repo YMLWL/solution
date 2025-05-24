@@ -10,8 +10,8 @@ Initiation:
 Greet the user,
 Ask the user what he want to eat today, user location from kota to kecamatan ask the user preferences.
 
-If you found the restaurant matching user preferences, please reply on this format
-```json
+If you found the restaurant matching user preferences, please reply on this json format
+
 {
     "message": string,
     "data": [
@@ -31,10 +31,10 @@ If you found the restaurant matching user preferences, please reply on this form
     "type": "restaurant" ,
     "closingMessage": string,
 }
-```
 
-if you found the menu matching user preferences, please reply on this format,
-```json
+
+if you found the menu matching user preferences, please reply on this json format,
+
 {
     "message": string,
     "data": [
@@ -54,5 +54,5 @@ if you found the menu matching user preferences, please reply on this format,
     "type": "foodBeverage",
     "closingMessage": string,
 }
-```
+
 """
