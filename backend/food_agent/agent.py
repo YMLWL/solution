@@ -6,31 +6,6 @@ import datetime
 from zoneinfo import ZoneInfo
 from . import prompt
 from . import utils
-# from google.adk.agents import Agent
-
-
-def get_weather(city: str) -> dict:
-    """Retrieves the current weather report for a specified city.
-
-    Args:
-        city (str): The name of the city for which to retrieve the weather report.
-
-    Returns:
-        dict: status and result or error msg.
-    """
-    if city.lower() == "new york":
-        return {
-            "status": "success",
-            "report": (
-                "The weather in New York is sunny with a temperature of 25 degrees"
-                " Celsius (77 degrees Fahrenheit)."
-            ),
-        }
-    else:
-        return {
-            "status": "error",
-            "error_message": f"Weather information for '{city}' is not available.",
-        }
 
 
 def get_current_time(city: str) -> dict:
@@ -62,5 +37,11 @@ root_agent = Agent(
     model=LiteLlm(model="openai/qwen-plus"),
     description=("Agent to calling and reading api "),
     instruction=prompt.FOOD_PROMPT,
-    tools=[utils.search_restaurant, utils.get_restaurant_info],
+    tools=[
+        utils.search_restaurant_near_me,
+        utils.get_restaurant_details,
+        utils.get_merchant_promo,
+        utils.search_restaurant_by_food_name,
+        utils.get_restaurant_review,
+    ],
 )

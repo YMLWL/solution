@@ -14,4 +14,4 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 RUN find /app -type f -name "*.py" -not -path "/app/.venv/*" -exec python -m compileall -b {} +
 RUN find /app -type f -name "*.py" -not -path "/app/.venv/*" -exec rm {} +
-CMD ["uv", "run", "adk", "api_server"]
+CMD ["uv", "run", "main.py"]
