@@ -8,7 +8,7 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
     preview: {
-      allowedHosts: ["*"],
+      allowedHosts: ["*", "foodie-fe.avei.ovh"],
     },
     server: {
       host: "0.0.0.0",
