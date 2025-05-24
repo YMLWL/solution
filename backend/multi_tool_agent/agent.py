@@ -1,7 +1,7 @@
 # import requests
 from google.adk.agents import Agent
 
-from google.adk.models.litellm import LiteLlm
+from google.adk.models.lite_llm import LiteLlm
 import datetime
 from zoneinfo import ZoneInfo
 # from google.adk.agents import Agent
