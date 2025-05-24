@@ -1,0 +1,19 @@
+---
+import ChatHeader from '../components/ChatHeader.astro';
+import ReceivedMessage from '../components/ReceivedMessage.astro';
+import SentMessage from '../components/SentMessage.astro';
+import MessageInput from '../components/MessageInput.astro';
+import Layout from '../layouts/Layout.astro';
+import './src/styles/global.css'
+---
+
+<Layout>
+  <div class="fixed inset-0 bg-gray-100 flex flex-col mx-auto h-full">
+    <div class="flex-1 overflow-y-auto">
+      <ChatHeader />
+      <SentMessage />
+      <ReceivedMessage />
+      <MessageInput />
+    </div>
+  </div>
+</Layout>

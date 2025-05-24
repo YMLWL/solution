@@ -1,0 +1,19 @@
+---
+import { ArrowLeft, Phone } from '@lucide/astro'
+import logo from '../assets/logo.png'
+import cart from "../assets/solar_cart-bold.svg"
+import arrow from "../assets/formkit_arrowleft.svg"
+import { Image } from 'astro:assets'
+---
+
+<div class="bg-white px-4 py-3 flex items-center gap-3">
+  <Image src={arrow} alt="Arrow Left" class="w-6 h-6 cursor-pointer" onclick="window.location.href='/'"/>
+  <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+    <Image src={logo} alt="FoodieBot Logo" class="w-10 h-10" />
+  </div>
+  <div class="flex-1">
+    <div class="font-bold text-black">FoodieBot</div>
+    <div class="text-sm text-gray-600">Bantu cari makanan enak, cepat & hemat</div>
+  </div>
+  <Image src={cart} alt="Cart" class="w-6 h-6" />
+</div>

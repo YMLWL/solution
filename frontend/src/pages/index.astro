@@ -1,11 +1,26 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import { Image } from 'astro:assets'
+import logo from '../assets/logo2x.png'
+import './src/styles/global.css'
 ---
 
 <Layout>
-	<Welcome />
+  <div class="fixed inset-0 bg-gray-100 flex flex-col mx-auto h-full">
+    <div class="flex-1 overflow-y-auto flex flex-col">
+      <div class="flex-1 flex flex-col items-center justify-center">
+        <Image src={logo} alt="FoodieBot Logo" class="w-48" />
+        <div class="text-center">
+          <h1 class="mt-8 text-2xl font-semibold text-wrap">Bingung mau makan apa?</h1>
+          <p class="text-sm text-wrap mt-2">Biar FoodieBot bantu cariin 
+            <br>makanan enak, hemat, dan sesuai<br>selera kamu!</p>
+        </div>
+      </div>
+      <div class="flex flex-col items-center justify-end pb-8">
+        <button onclick="window.location.href='/chat'" class="bg-[#008B00] text-white px-12 py-2 rounded-full cursor-pointer">
+          <span class="text-white">Mulai Chat</span>
+        </button>
+      </div>
+    </div>
+  </div>
 </Layout>

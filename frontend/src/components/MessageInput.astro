@@ -1,0 +1,21 @@
+---
+import { Plus, Camera, SendHorizontal } from '@lucide/astro'
+---
+
+<div class="fixed bottom-0 bg-white px-4 py-3 w-full max-w-full">
+  <div class="flex items-center gap-3">
+    <button class="w-8 h-8 bg-[#008B00] hover:bg-green-700 text-white rounded-full flex items-center justify-center">
+      <Plus class="w-4 h-4" />
+    </button>
+    <button class="w-8 h-8 text-gray-400">
+      <Camera class="w-4 h-4" />
+    </button>
+    <input
+      placeholder="Ketik pesan..."
+      class="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm focus:outline-none"
+    />
+    <button class="w-8 h-8 bg-[#008B00] hover:bg-green-700 text-white rounded-full flex items-center justify-center cursor-pointer">
+      <SendHorizontal class="w-4 h-4" />
+    </button>
+  </div>
+</div>
