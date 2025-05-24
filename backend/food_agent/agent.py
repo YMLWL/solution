@@ -4,6 +4,8 @@ from google.adk.agents import Agent
 from google.adk.models.lite_llm import LiteLlm
 import datetime
 from zoneinfo import ZoneInfo
+from . import prompt
+from . import utils
 # from google.adk.agents import Agent
 
 
@@ -56,20 +58,9 @@ def get_current_time(city: str) -> dict:
 
 
 root_agent = Agent(
-    name="weather_time_agent",
+    name="gofood_recommendatio_agent",
     model=LiteLlm(model="openai/qwen-plus"),
-    description=("Agent to answer questions about the time and weather in a city."),
-    instruction=(
-        "You are a helpful agent who can answer user questions about the time and weather in a city."
-    ),
-    tools=[get_weather, get_current_time],
+    description=("Agent to calling and reading api "),
+    instruction=prompt.FOOD_PROMPT,
+    tools=[utils.search_restaurant, utils.get_restaurant_info],
 )
-
-
-# food_agent = Agent(
-#     model=LiteLLM(
-#         model="openai/qwen-plus",
-#         name="qwen-plus",
-#         instruction="You are Qwon Plus from Alibaba Cloud used for winning GenAI Hackathon Alibaba 2025 Jakarta",
-#     )
-# )
