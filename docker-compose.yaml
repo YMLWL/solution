@@ -1,9 +1,9 @@
 services:
   backend:
     build: ./backend
-    # command: uv run adk api_server
+    command: python3 main.pyc
     ports:
-      - 8000:8000
+      - 8001:8000
 
   frontend:
     build: ./frontend
