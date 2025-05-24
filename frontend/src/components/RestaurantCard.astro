@@ -1,0 +1,85 @@
+---
+import { Star } from "lucide-react";
+
+interface Props {
+  name: string;
+  rating: number;
+  reviews: number;
+  distance: string;
+  image: string;
+  itemName: string;
+  quantity: number;
+  pricePerItem: number;
+  totalPrice: number;
+  includesDelivery?: boolean;
+}
+
+const {
+  name,
+  rating,
+  reviews,
+  distance,
+  image,
+  itemName,
+  quantity,
+  pricePerItem,
+  totalPrice,
+  includesDelivery = true
+} = Astro.props;
+
+const formattedPrice = (price: number) => {
+  return `Rp${price.toLocaleString('id-ID')}`;
+}
+---
+
+<div class="max-w-sm mx-auto bg-gray-800 p-4 min-h-screen">
+  <div class="text-gray-400 text-sm mb-4">Frame 26</div>
+
+  <div class="bg-white rounded-2xl overflow-hidden shadow-lg">
+    {/* Food Image with Speech Bubble */}
+    <div class="relative">
+      <img src={image} alt={`${name} image`} class="w-full h-48 object-cover" />
+      {includesDelivery && (
+        <div class="absolute top-4 left-4">
+          <div class="bg-green-600 text-white px-4 py-2 rounded-2xl rounded-tl-md text-sm font-medium">
+            Biaya sudah termasuk ongkir
+          </div>
+        </div>
+      )}
+    </div>
+
+    {/* Card Content */}
+    <div class="p-4 space-y-4">
+      {/* Rating and Distance */}
+      <div class="flex items-center gap-4 text-sm">
+        <div class="flex items-center gap-1">
+          <Star class="w-4 h-4 fill-orange-500 text-orange-500" />
+          <span class="font-medium text-gray-800">{rating}</span>
+          <span class="text-gray-500">({reviews}+)</span>
+        </div>
+        <span class="text-gray-500">{distance}</span>
+      </div>
+
+      <h2 class="text-xl font-semibold text-gray-800 leading-tight">{name}</h2>
+
+      <div class="space-y-2">
+        <div class="flex justify-between items-center">
+          <span class="text-gray-600">{itemName}</span>
+          <span class="font-medium">x{quantity}</span>
+        </div>
+        <div class="text-gray-800 font-medium">{formattedPrice(pricePerItem)}</div>
+      </div>
+
+      <hr class="border-gray-200" />
+
+      <div class="flex justify-between items-center">
+        <span class="text-gray-600">Total</span>
+        <span class="text-xl font-semibold text-gray-800">{formattedPrice(totalPrice)}</span>
+      </div>
+
+      <button class="w-full bg-white border-2 border-green-600 text-green-600 hover:bg-green-50 rounded-full py-3 font-medium text-base">
+        Tambah
+      </button>
+    </div>
+  </div>
+</div>

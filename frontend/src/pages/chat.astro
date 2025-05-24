@@ -3,6 +3,8 @@ import ChatHeader from '../components/ChatHeader.astro';
 import ReceivedMessage from '../components/ReceivedMessage.astro';
 import SentMessage from '../components/SentMessage.astro';
 import MessageInput from '../components/MessageInput.astro';
+import FoodCard from '../components/FoodCard.astro';
+import RestaurantCard from '../components/RestaurantCard.astro';
 import Layout from '../layouts/Layout.astro';
 import './src/styles/global.css'
 ---
@@ -76,7 +78,172 @@ import './src/styles/global.css'
     }
   }
 
-  // Add a message to the UI using the SentMessage and ReceivedMessage components styling
+  interface FoodItem {
+    name: string;
+    distance: string;
+    review: string;
+    location: string;
+    image: string;
+    link: string;
+    price: number;
+  }
+
+  interface FoodResponse {
+    message: string;
+    data: FoodItem[];
+    type: 'foodBeverage';
+    closingMessage: string;
+  }
+
+  interface RestaurantItem {
+    uid: string;
+    name: string;
+    distance: number;
+    review: string;
+    rating: number;
+    location?: string;
+    image: string;
+    link: string;
+  }
+
+  interface RestaurantResponse {
+    message: string;
+    data: RestaurantItem[];
+    type: 'restaurant';
+    closingMessage: string;
+  }
+
+  // Function to clean JSON string from markdown code blocks
+  function cleanJsonString(content: string): string {
+    return content
+      .replace(/```json\s*/, '') // Remove ```json at start
+      .replace(/\s*```\s*$/, '') // Remove ``` at end
+      .trim();
+  }
+
+  // Function to handle food recommendation response
+  function handleFoodResponse(content: string) {
+    console.log('Processing response:', content); // Debug log
+    try {
+      const cleanContent = cleanJsonString(content);
+      console.log('Cleaned content:', cleanContent); // Debug log
+      const response = JSON.parse(cleanContent) as FoodResponse | RestaurantResponse;
+      console.log('Parsed response:', response); // Debug log
+      
+      // Display initial message if present
+      if (response.message) {
+        addMessage(response.message);
+      }
+
+      // Add spinner
+      addSpinner();
+
+      // Process each item with delay
+      if (response.data && Array.isArray(response.data)) {
+        response.data.forEach((item, index) => {
+          setTimeout(() => {
+            // Remove spinner before last item
+            if (index === response.data.length - 1) {
+              removeSpinner();
+            }
+
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'flex justify-start m-4';
+
+            if (response.type === 'restaurant') {
+              const restaurant = item as RestaurantItem;
+              cardDiv.innerHTML = `
+                <div class="max-w-sm w-full">
+                  <div class="bg-white rounded-2xl overflow-hidden shadow-lg">
+                    <div class="relative">
+                      <img src="${restaurant.image || '/placeholder-restaurant.jpg'}" alt="${restaurant.name}" class="w-full h-48 object-cover" />
+                    </div>
+                    <div class="p-4 space-y-4">
+                      <div class="flex items-center gap-4 text-sm">
+                        <div class="flex items-center gap-1">
+                          <svg class="w-4 h-4 fill-orange-500 text-orange-500" viewBox="0 0 24 24">
+                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                          </svg>
+                          <span class="font-medium text-gray-800">${restaurant.rating}</span>
+                          <span class="text-gray-500">(${restaurant.review || '0'}+)</span>
+                        </div>
+                        <span class="text-gray-500">${restaurant.distance} km</span>
+                      </div>
+                      <h2 class="text-xl font-semibold text-gray-800 leading-tight">${restaurant.name}</h2>
+                      <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                          <span class="text-gray-600">${restaurant.location || ''}</span>
+                        </div>
+                      </div>
+                      ${restaurant.link ? `
+                        <a href="${restaurant.link}" target="_blank" class="block">
+                          <button class="w-full bg-white border-2 border-green-600 text-green-600 hover:bg-green-50 rounded-full py-3 font-medium text-base">
+                            Lihat Detail
+                          </button>
+                        </a>
+                      ` : ''}
+                    </div>
+                  </div>
+                </div>
+              `;
+            } else {
+              const food = item as FoodItem;
+              cardDiv.innerHTML = `
+                <div class="max-w-sm w-full">
+                  <div class="bg-white rounded-2xl overflow-hidden shadow-lg">
+                    <div class="relative">
+                      <img src="${food.image || '/placeholder-food.jpg'}" alt="${food.name}" class="w-full h-48 object-cover" />
+                    </div>
+                    <div class="p-4 space-y-4">
+                      <div class="flex items-center gap-4 text-sm">
+                        <div class="flex items-center gap-1">
+                          <svg class="w-4 h-4 fill-orange-500 text-orange-500" viewBox="0 0 24 24">
+                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                          </svg>
+                          <span class="font-medium text-gray-800">${food.review || '0'}</span>
+                        </div>
+                        <span class="text-gray-500">${food.distance}</span>
+                      </div>
+                      <h2 class="text-xl font-semibold text-gray-800 leading-tight">${food.name}</h2>
+                      <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                          <span class="text-gray-600">${food.location || ''}</span>
+                        </div>
+                        <div class="text-gray-800 font-medium">Rp${(food.price || 0).toLocaleString('id-ID')}</div>
+                      </div>
+                      ${food.link ? `
+                        <a href="${food.link}" target="_blank" class="block">
+                          <button class="w-full bg-white border-2 border-green-600 text-green-600 hover:bg-green-50 rounded-full py-3 font-medium text-base">
+                            Lihat Detail
+                          </button>
+                        </a>
+                      ` : ''}
+                    </div>
+                  </div>
+                </div>
+              `;
+            }
+
+            safeMessageContainer.appendChild(cardDiv);
+            safeMessageContainer.scrollTop = safeMessageContainer.scrollHeight;
+          }, index * 1000); // Add 1 second delay between each card
+        });
+
+        // Add closing message after all cards
+        if (response.closingMessage) {
+          setTimeout(() => {
+            addMessage(response.closingMessage);
+          }, (response.data.length + 1) * 1000);
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing response:', error);
+      removeSpinner();
+      addMessage(content);
+    }
+  }
+
+  // Modified addMessage function
   function addMessage(content: string, isUser = false) {
     const messageDiv = document.createElement('div');
     if (isUser) {
@@ -94,6 +261,12 @@ import './src/styles/global.css'
         </div>
       `;
     } else {
+      // Check if the content is a JSON string containing recommendations
+      if (content.trim().startsWith('```json') || (content.trim().startsWith('{') && content.includes('"data"') && content.includes('"type"'))) {
+        handleFoodResponse(content);
+        return;
+      }
+
       messageDiv.innerHTML = `
         <div class="flex justify-start">
           <div class="m-4 bg-gray-200 text-gray-800 rounded-2xl rounded-tl-md px-4 py-3 max-w-xs whitespace-pre-line">
@@ -103,6 +276,7 @@ import './src/styles/global.css'
         </div>
       `;
     }
+    
     safeMessageContainer.appendChild(messageDiv);
     safeMessageContainer.scrollTop = safeMessageContainer.scrollHeight;
   }
@@ -191,6 +365,7 @@ import './src/styles/global.css'
 
       removeSpinner();
       if (finalMessage) {
+        console.log('Final message received:', finalMessage); // Debug log
         addMessage(finalMessage);
       }
 
