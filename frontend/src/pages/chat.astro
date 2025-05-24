@@ -25,7 +25,7 @@ import './src/styles/global.css'
 </Layout>
 
 <script>
-  const API_BASE_URL = 'https://08a0-2a09-bac5-3a22-137d-00-1f1-1fb.ngrok-free.app';
+  const API_BASE_URL = 'http://149.129.240.125:8000';
   const messageContainer = document.getElementById('messageContainer');
   const messageForm = document.querySelector('.fixed.bottom-0 form') || document.querySelector('.fixed.bottom-0');
   const messageInput = document.querySelector('input[placeholder="Ketik pesan..."]') as HTMLInputElement;
@@ -332,9 +332,11 @@ import './src/styles/global.css'
             role: 'user',
             parts: [{ text: message }]
           },
-          streaming: true
+          streaming: false
         })
       });
+
+      console.log('Response:', response);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

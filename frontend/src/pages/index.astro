@@ -27,7 +27,7 @@ import './src/styles/global.css'
 <script>
   const startChatBtn = document.getElementById('startChatBtn');
   const userId = 'test2405';
-  const API_BASE_URL = 'https://08a0-2a09-bac5-3a22-137d-00-1f1-1fb.ngrok-free.app';
+  const API_BASE_URL = 'http://149.129.240.125:8000';
 
   // Function to set a cookie
   function setCookie(name: string, value: string, days: number) {
@@ -52,9 +52,8 @@ import './src/styles/global.css'
       // Store session data in cookies
       setCookie('foodiebot_session_id', data.id, 7); // Store for 7 days
       setCookie('foodiebot_user_id', userId, 7);
-	  console.log(data);
       
-      // Redirect to chat page
+      // Redirect to questionnaire page instead of chat
       window.location.href = '/chat';
     } catch (error) {
       console.error('Error creating session:', error);
