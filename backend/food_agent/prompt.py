@@ -22,7 +22,7 @@ If you found the restaurant matching user preferences, please reply on this json
             "review": {
                 "average": number,
                 "total": number,
-            },
+            }, //ensure this field is not empty because we recommend based on restaurant and food rating
             "rating": number,
             "image": string,
             "link": string, //return gofood.link/
@@ -44,7 +44,7 @@ if you found the menu matching user preferences, please reply on this json forma
             "review": {
                 "average": number,
                 "total": number,
-            },
+            }, //ensure this field is not empty because we recommend based on restaurant and food rating
             "location":string,
             "image":string,
             "link":string,
