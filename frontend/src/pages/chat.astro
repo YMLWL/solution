@@ -6,7 +6,7 @@ import MessageInput from '../components/MessageInput.astro';
 import FoodCard from '../components/FoodCard.astro';
 import RestaurantCard from '../components/RestaurantCard.astro';
 import Layout from '../layouts/Layout.astro';
-import './src/styles/global.css'
+import '../styles/global.css'
 ---
 
 <Layout>
@@ -119,12 +119,147 @@ import './src/styles/global.css'
     closingMessage: string;
   }
 
+  interface ExtractedItem {
+    name: string;
+    distance: string;
+    review: {
+      average: number;
+      total: number;
+    };
+    location: string;
+    image: string;
+    link: string;
+    price: number;
+  }
+
   // Function to clean JSON string from markdown code blocks
   function cleanJsonString(content: string): string {
     return content
       .replace(/```json\s*/, '') // Remove ```json at start
       .replace(/\s*```\s*$/, '') // Remove ``` at end
       .trim();
+  }
+
+  // Function to detect if content contains JSON using regex
+  function isJsonResponse(content: string): boolean {
+    // Remove code block markers first
+    const cleanContent = content.replace(/```json\s*|\s*```/g, '').trim();
+    
+    // Regex patterns to detect JSON structures
+    const jsonPatterns = [
+      /^\s*\{.*"data"\s*:\s*\[.*\].*\}\s*$/s, // Complete JSON object with data array
+      /^\s*\{.*"type"\s*:\s*["'](?:foodBeverage|restaurant)["'].*\}\s*$/s, // JSON with type field
+      /^\s*\{.*"message"\s*:.*"data"\s*:.*\}\s*$/s, // JSON with message and data
+      /^\s*\{[^{}]*"name"\s*:.*"distance"\s*:.*\}\s*$/s // Single item JSON
+    ];
+    
+    return jsonPatterns.some(pattern => pattern.test(cleanContent));
+  }
+
+  // Function to attempt JSON repair for common issues
+  function repairJson(jsonString: string): string {
+    let repaired = jsonString;
+    
+    // Remove markdown code blocks
+    repaired = repaired.replace(/```json\s*|\s*```/g, '').trim();
+    
+    // Fix common JSON formatting issues
+    repaired = repaired
+      // Fix missing commas between objects
+      .replace(/}\s*{/g, '},{')
+      // Fix missing commas between properties
+      .replace(/"\s*:\s*([^,}\]]+)\s*"/g, '": $1,"')
+      // Fix trailing commas before closing brackets
+      .replace(/,\s*([}\]])/g, '$1')
+      // Fix missing quotes around property names
+      .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":')
+      // Fix missing brackets for arrays
+      .replace(/"data"\s*:\s*([^[{])/g, '"data": [$1')
+      // Ensure proper array closing
+      .replace(/,\s*"type"/g, '],"type"');
+    
+    // Try to ensure it starts and ends properly
+    if (!repaired.startsWith('{')) {
+      repaired = '{' + repaired;
+    }
+    if (!repaired.endsWith('}')) {
+      repaired = repaired + '}';
+    }
+    
+    return repaired;
+  }
+
+  // Enhanced function to extract structured data from malformed JSON
+  function extractDataFromMalformedJson(content: string): FoodResponse | RestaurantResponse | null {
+    const cleanContent = content.replace(/```json\s*|\s*```/g, '').trim();
+    
+    try {
+      // Try to extract individual items using regex
+      const items: ExtractedItem[] = [];
+      
+      // Pattern to match food/restaurant items
+      const itemPattern = /"name"\s*:\s*"([^"]+)"[^}]*"distance"\s*:\s*"([^"]+)"[^}]*(?:"review"\s*:\s*\{[^}]*"average"\s*:\s*([^,}]+)[^}]*"total"\s*:\s*([^}]+)\})?[^}]*(?:"location"\s*:\s*"([^"]+)")?[^}]*(?:"image"\s*:\s*"([^"]+)")?[^}]*(?:"link"\s*:\s*"([^"]+)")?[^}]*(?:"price"\s*:\s*([^,}]+))?/g;
+      
+      let match;
+      while ((match = itemPattern.exec(cleanContent)) !== null) {
+        const item: ExtractedItem = {
+          name: match[1] || '',
+          distance: match[2] || '',
+          review: {
+            average: parseFloat(match[3]) || 0,
+            total: parseInt(match[4]) || 0
+          },
+          location: match[5] || '',
+          image: match[6] || '',
+          link: match[7] || '',
+          price: parseInt(match[8]) || 0
+        };
+        items.push(item);
+      }
+      
+      // Extract message and type
+      const messageMatch = cleanContent.match(/"message"\s*:\s*"([^"]+)"/);
+      const typeMatch = cleanContent.match(/"type"\s*:\s*"([^"]+)"/);
+      const closingMessageMatch = cleanContent.match(/"closingMessage"\s*:\s*"([^"]+)"/);
+      
+      const type = typeMatch ? typeMatch[1] as 'foodBeverage' | 'restaurant' : 'foodBeverage';
+      
+      if (type === 'restaurant') {
+        return {
+          message: messageMatch ? messageMatch[1] : '',
+          data: items.map(item => ({
+            uid: '', // Default empty UID for extracted data
+            name: item.name,
+            distance: parseFloat(item.distance) || 0,
+            review: item.review,
+            rating: item.review.average,
+            location: item.location,
+            image: item.image,
+            link: item.link
+          })),
+          type: 'restaurant',
+          closingMessage: closingMessageMatch ? closingMessageMatch[1] : ''
+        } as RestaurantResponse;
+      } else {
+        return {
+          message: messageMatch ? messageMatch[1] : '',
+          data: items.map(item => ({
+            name: item.name,
+            distance: item.distance,
+            review: item.review,
+            location: item.location,
+            image: item.image,
+            link: item.link,
+            price: item.price
+          })),
+          type: 'foodBeverage',
+          closingMessage: closingMessageMatch ? closingMessageMatch[1] : ''
+        } as FoodResponse;
+      }
+    } catch (error) {
+      console.error('Error extracting data from malformed JSON:', error);
+      return null;
+    }
   }
 
   // Function to handle food recommendation response
@@ -144,9 +279,9 @@ import './src/styles/global.css'
       // Add spinner
       addSpinner();
 
-      // Process each item immediately
+      // Process each item
       if (response.data && Array.isArray(response.data)) {
-        response.data.forEach((item) => {
+        response.data.forEach((item: FoodItem | RestaurantItem) => {
           const cardDiv = document.createElement('div');
           cardDiv.className = 'flex justify-start m-4';
 
@@ -164,10 +299,10 @@ import './src/styles/global.css'
                         <svg class="w-4 h-4 fill-orange-500 text-orange-500" viewBox="0 0 24 24">
                           <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                         </svg>
-                        <span class="font-medium text-gray-800">${restaurant.rating}</span>
-                        <span class="text-gray-500">(${restaurant.review.total}+)</span>
+                        <span class="font-medium text-gray-800">${restaurant.rating || restaurant.review?.average || 0}</span>
+                        <span class="text-gray-500">(${restaurant.review?.total || 0}+)</span>
                       </div>
-                      <span class="text-gray-500">${restaurant.distance} km</span>
+                      <span class="text-gray-500">${restaurant.distance}</span>
                     </div>
                     <h2 class="text-xl font-semibold text-gray-800 leading-tight">${restaurant.name}</h2>
                     <div class="space-y-2">
@@ -200,8 +335,8 @@ import './src/styles/global.css'
                         <svg class="w-4 h-4 fill-orange-500 text-orange-500" viewBox="0 0 24 24">
                           <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                         </svg>
-                        <span class="font-medium text-gray-800">${food.review.average}</span>
-                        <span class="text-gray-500">(${food.review.total}+)</span>
+                        <span class="font-medium text-gray-800">${food.review?.average || 0}</span>
+                        <span class="text-gray-500">(${food.review?.total || 0}+)</span>
                       </div>
                       <span class="text-gray-500">${food.distance}</span>
                     </div>
@@ -210,7 +345,7 @@ import './src/styles/global.css'
                       <div class="flex justify-between items-center">
                         <span class="text-gray-600">${food.location || ''}</span>
                       </div>
-                      <div class="text-gray-800 font-medium">Rp${(food.price || 0).toLocaleString('id-ID')}</div>
+                      <div class="text-gray-800 font-medium">Rp${food.price.toLocaleString('id-ID')}</div>
                     </div>
                     ${food.link ? `
                       <a href="${food.link}" target="_blank" class="block">
