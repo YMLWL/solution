@@ -31,7 +31,7 @@ If you found the restaurant matching user preferences, please reply on this form
     "type": "restaurant" ,
     "closingMessage": string,
 }
-# ```
+```
 
 if you found the menu matching user preferences, please reply on this format,
 ```json
