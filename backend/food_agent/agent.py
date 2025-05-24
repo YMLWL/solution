@@ -51,9 +51,9 @@ def check_json(json_str: str) -> bool:
 
 
 root_agent = Agent(
-    name="gofood_recommendatio_agent",
+    name="gofood_recommendation_agent",
     model=LiteLlm(model="openai/qwen-plus"),
-    description=("Agent to calling and reading api "),
+    description=("super fast Agent to calling and reading api"),
     instruction=prompt.FOOD_PROMPT,
     tools=[
         utils.search_restaurant_near_me,
