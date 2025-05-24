@@ -25,7 +25,8 @@ import '../styles/global.css'
 </Layout>
 
 <script>
-  const API_BASE_URL = 'http://149.129.240.125:8000';
+  // const API_BASE_URL = 'http://149.129.240.125:8000';
+  const API_BASE_URL = 'http://127.0.0.1:8000';
   const messageContainer = document.getElementById('messageContainer');
   const messageForm = document.querySelector('.fixed.bottom-0 form') || document.querySelector('.fixed.bottom-0');
   const messageInput = document.querySelector('input[placeholder="Ketik pesan..."]') as HTMLInputElement;
@@ -442,7 +443,7 @@ import '../styles/global.css'
 
   // Handle message sending
   async function handleSendMessage() {
-    const message = messageInput.value.trim();
+    var message = messageInput.value.trim();
     if (!message || !sessionId) return;
 
     // Add user message to UI
@@ -453,6 +454,28 @@ import '../styles/global.css'
     addSpinner();
 
     try {
+      // Get location data from cookies
+      const latitude = getCookie('foodiebot_latitude');
+      const longitude = getCookie('foodiebot_longitude');
+      const province = getCookie('foodiebot_province');
+      const city = getCookie('foodiebot_city');
+      const kecamatan = getCookie('foodiebot_kecamatan');
+
+      // Create location string only if we have valid data
+      let locationString = '';
+      if (latitude && longitude && !isNaN(parseFloat(latitude)) && !isNaN(parseFloat(longitude))) {
+        locationString = `[LOCATION_COORDS=${parseFloat(latitude)},${parseFloat(longitude)}]`;
+      }
+      if (city && kecamatan) {
+        // Convert to lowercase and replace spaces with hyphens for API compatibility
+        const formattedCity = city.toLowerCase().replace(/\s+/g, '-');
+        const formattedKecamatan = kecamatan.toLowerCase().replace(/\s+/g, '-');
+        locationString += ` [LOCATION_AREA=${formattedCity},${formattedKecamatan}]`;
+      }
+
+      // Append location to message if available
+      const messageWithLocation = locationString ? `${message} ${locationString}` : message;
+
       const response = await fetch(`${API_BASE_URL}/run_sse`, {
         method: 'POST',
         headers: {
@@ -465,13 +488,13 @@ import '../styles/global.css'
           sessionId: sessionId,
           newMessage: {
             role: 'user',
-            parts: [{ text: message }]
+            parts: [{ 
+              text: messageWithLocation
+            }]
           },
           streaming: false
         })
       });
-
-      console.log('Response:', response);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -483,13 +506,53 @@ import '../styles/global.css'
       }
 
       let currentMessageDiv: HTMLDivElement | null = null;
-      let accumulatedText = '';
+      let jsonBuffer = '';
+      let textBuffer = '';
+
+      const processJsonResponse = (jsonText: string) => {
+        removeSpinner();
+        try {
+          handleFoodResponse(jsonText);
+          jsonBuffer = ''; // Reset buffer after processing
+        } catch (error) {
+          console.error('Error processing JSON response:', error);
+          addMessage('Sorry, there was an error processing the recommendations.');
+        }
+      };
+
+      const processTextResponse = (text: string) => {
+        if (!currentMessageDiv) {
+          removeSpinner();
+          currentMessageDiv = document.createElement('div');
+          currentMessageDiv.className = 'flex justify-start';
+          currentMessageDiv.innerHTML = `
+            <div class="m-4 bg-gray-200 text-gray-800 rounded-2xl rounded-tl-md px-4 py-3 max-w-xs whitespace-pre-line">
+              <div class="text-sm"></div>
+              <div class="text-xs text-gray-500 mt-1">${new Date().toLocaleTimeString()}</div>
+            </div>
+          `;
+          safeMessageContainer.appendChild(currentMessageDiv);
+        }
+
+        const textDiv = currentMessageDiv.querySelector('.text-sm');
+        if (textDiv) {
+          textDiv.textContent = text;
+          safeMessageContainer.scrollTop = safeMessageContainer.scrollHeight;
+        }
+      };
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {
+          // Process any remaining data in buffers
+          if (jsonBuffer) {
+            processJsonResponse(jsonBuffer);
+          } else if (textBuffer) {
+            processTextResponse(textBuffer);
+          }
+          break;
+        }
 
-        // Convert chunk to text
         const chunk = new TextDecoder().decode(value);
         const events = chunk.split('\n\n').filter(Boolean);
 
@@ -498,46 +561,25 @@ import '../styles/global.css'
 
           try {
             const jsonData = JSON.parse(event.slice(6));
-            if (!jsonData.content?.parts?.[0]?.text) continue;
+            const text = jsonData.content?.parts?.[0]?.text;
+            if (!text) continue;
 
-            const text = jsonData.content.parts[0].text;
-
-            // Handle JSON responses differently
+            // Check if it's a JSON response
             if (text.trim().startsWith('{') || text.trim().startsWith('```json')) {
-              accumulatedText = text;
-              continue;
-            }
-
-            // For regular text responses
-            if (!currentMessageDiv) {
-              removeSpinner();
-              currentMessageDiv = document.createElement('div');
-              currentMessageDiv.className = 'flex justify-start';
-              currentMessageDiv.innerHTML = `
-                <div class="m-4 bg-gray-200 text-gray-800 rounded-2xl rounded-tl-md px-4 py-3 max-w-xs whitespace-pre-line">
-                  <div class="text-sm"></div>
-                  <div class="text-xs text-gray-500 mt-1">${new Date().toLocaleTimeString()}</div>
-                </div>
-              `;
-              safeMessageContainer.appendChild(currentMessageDiv);
-            }
-
-            const textDiv = currentMessageDiv.querySelector('.text-sm');
-            if (textDiv) {
-              accumulatedText += text;
-              textDiv.textContent = accumulatedText;
-              safeMessageContainer.scrollTop = safeMessageContainer.scrollHeight;
+              jsonBuffer += text;
+              // Try to process JSON immediately if it seems complete
+              if ((text.includes('"type"') && text.includes('"data"')) || text.endsWith('```')) {
+                processJsonResponse(jsonBuffer);
+              }
+            } else {
+              // Handle regular text
+              textBuffer += text;
+              processTextResponse(textBuffer);
             }
           } catch (error) {
             console.error('Error processing event:', error);
           }
         }
-      }
-
-      // Handle any accumulated JSON response at the end
-      if (accumulatedText.trim().startsWith('{') || accumulatedText.trim().startsWith('```json')) {
-        removeSpinner();
-        handleFoodResponse(accumulatedText);
       }
 
     } catch (error) {
