@@ -2,6 +2,9 @@ services:
   backend:
     build: ./backend
     command: python3 main.pyc
+    environment:
+      OPENAI_API_BASE: ""
+      OPENAI_API_KEY: ""
     ports:
       - 8001:8000
 
