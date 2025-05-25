@@ -2,25 +2,10 @@ import json
 from google.adk.agents import Agent
 from google.adk.models.lite_llm import LiteLlm
 import datetime
-import re
+import requests
 from typing import Dict, Any
 from . import prompt
 from . import utils
-
-
-def extract_location_from_message(message: str) -> dict:
-    """Extract location information from the message."""
-    # ... existing code ...
-
-
-def validate_location(location_data: dict) -> bool:
-    """Validate if we have sufficient location data."""
-    # ... existing code ...
-
-
-def process_user_message(message: str) -> dict:
-    """Process the user's message and extract relevant information."""
-    # ... existing code ...
 
 
 def check_json(json_str: str) -> bool:
@@ -72,23 +57,9 @@ class FoodAgent(Agent):
             else:
                 user_message = str(message)
 
-            # Process the message and extract location
-            processed_data = process_user_message(user_message)
-
-            if not processed_data["has_valid_location"]:
-                return {
-                    "role": "assistant",
-                    "parts": [
-                        {
-                            "text": "Mohon maaf, saya membutuhkan informasi lokasi Anda untuk memberikan rekomendasi yang tepat. Bisa tolong share lokasi Anda?"
-                        }
-                    ],
-                }
-
             # Create context for the model
             context = {
-                "message": processed_data["clean_message"],
-                "location": processed_data["location"],
+                "message": user_message,
                 "timestamp": datetime.datetime.now().isoformat(),
                 "language": "id",  # Default to Indonesian
             }

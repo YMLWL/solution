@@ -3,8 +3,8 @@ services:
     build: ./backend
     command: python3 main.pyc
     environment:
-      OPENAI_API_BASE: ""
-      OPENAI_API_KEY: ""
+      OPENAI_API_BASE: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
+      OPENAI_API_KEY: sk-acffae369d6c494cbacb1472d1a8d4d3
     ports:
       - 8001:8000
 
