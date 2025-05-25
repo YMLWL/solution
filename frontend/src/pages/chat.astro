@@ -25,8 +25,7 @@ import '../styles/global.css'
 </Layout>
 
 <script>
-  // const API_BASE_URL = 'http://149.129.240.125:8000';
-  const API_BASE_URL = 'http://127.0.0.1:8000';
+  const API_BASE_URL = 'http://149.129.240.125:8000';
   const messageContainer = document.getElementById('messageContainer');
   const messageForm = document.querySelector('.fixed.bottom-0 form') || document.querySelector('.fixed.bottom-0');
   const messageInput = document.querySelector('input[placeholder="Ketik pesan..."]') as HTMLInputElement;
@@ -56,7 +55,7 @@ import '../styles/global.css'
 
   // Get session ID and user ID from cookies
   let sessionId = getCookie('foodiebot_session_id') || '';
-  let userId = getCookie('foodiebot_user_id') || 'test2405';
+  let userId = getCookie('foodiebot_user_id') || 'test2505';
 
   // Get session ID from URL or create new session
   async function initializeSession() {
@@ -473,8 +472,8 @@ import '../styles/global.css'
         locationString += ` [LOCATION_AREA=${formattedCity},${formattedKecamatan}]`;
       }
 
-      // Append location to message if available
-      const messageWithLocation = locationString ? `${message} ${locationString}` : message;
+      // Append location to message if available, add lat & lon too
+      const messageWithLocation = locationString ? `${message} ${locationString} [LOCATION_COORDS=${latitude},${longitude}]` : message;
 
       const response = await fetch(`${API_BASE_URL}/run_sse`, {
         method: 'POST',
@@ -489,7 +488,7 @@ import '../styles/global.css'
           newMessage: {
             role: 'user',
             parts: [{ 
-              text: messageWithLocation
+              text: messageWithLocation,
             }]
           },
           streaming: false
