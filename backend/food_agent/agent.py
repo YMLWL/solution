@@ -37,83 +37,83 @@ class FoodAgent(Agent):
             tools=tools,
         )
 
-    def process_message(self, message: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Process incoming messages with Google ADK format.
+    # def process_message(self, message: Dict[str, Any]) -> Dict[str, Any]:
+    #     """
+    #     Process incoming messages with Google ADK format.
 
-        Args:
-            message: Dict containing message data in Google ADK format
+    #     Args:
+    #         message: Dict containing message data in Google ADK format
 
-        Returns:
-            Dict containing the response in proper format
-        """
-        try:
-            # Extract the actual message text from ADK format
-            if isinstance(message, dict):
-                user_message = message.get("message", "")
-                if not user_message and "parts" in message:
-                    parts = message.get("parts", [])
-                    user_message = parts[0].get("text", "") if parts else ""
-            else:
-                user_message = str(message)
+    #     Returns:
+    #         Dict containing the response in proper format
+    #     """
+    #     try:
+    #         # Extract the actual message text from ADK format
+    #         if isinstance(message, dict):
+    #             user_message = message.get("message", "")
+    #             if not user_message and "parts" in message:
+    #                 parts = message.get("parts", [])
+    #                 user_message = parts[0].get("text", "") if parts else ""
+    #         else:
+    #             user_message = str(message)
 
-            # Create context for the model
-            context = {
-                "message": user_message,
-                "timestamp": datetime.datetime.now().isoformat(),
-                "language": "id",  # Default to Indonesian
-            }
+    #         # Create context for the model
+    #         context = {
+    #             "message": user_message,
+    #             "timestamp": datetime.datetime.now().isoformat(),
+    #             "language": "id",  # Default to Indonesian
+    #         }
 
-            # Call parent's process_message with context
-            response = super().process_message(context)
+    #         # Call parent's process_message with context
+    #         response = super().process_message(context)
 
-            # Validate response format
-            if isinstance(response, dict):
-                if "error" in response:
-                    return {
-                        "role": "assistant",
-                        "parts": [
-                            {"text": f"Maaf, terjadi kesalahan: {response['error']}"}
-                        ],
-                    }
+    #         # Validate response format
+    #         if isinstance(response, dict):
+    #             if "error" in response:
+    #                 return {
+    #                     "role": "assistant",
+    #                     "parts": [
+    #                         {"text": f"Maaf, terjadi kesalahan: {response['error']}"}
+    #                     ],
+    #                 }
 
-                # If it's already in the correct format, validate the JSON
-                if check_json(json.dumps(response)):
-                    return {
-                        "role": "assistant",
-                        "parts": [{"text": json.dumps(response, ensure_ascii=False)}],
-                    }
+    #             # If it's already in the correct format, validate the JSON
+    #             if check_json(json.dumps(response)):
+    #                 return {
+    #                     "role": "assistant",
+    #                     "parts": [{"text": json.dumps(response, ensure_ascii=False)}],
+    #                 }
 
-            # If response is just text, wrap it in proper format
-            return {"role": "assistant", "parts": [{"text": str(response)}]}
+    #         # If response is just text, wrap it in proper format
+    #         return {"role": "assistant", "parts": [{"text": str(response)}]}
 
-        except Exception as e:
-            return {
-                "role": "assistant",
-                "parts": [{"text": f"Mohon maaf, terjadi kesalahan sistem: {str(e)}"}],
-            }
+    #     except Exception as e:
+    #         return {
+    #             "role": "assistant",
+    #             "parts": [{"text": f"Mohon maaf, terjadi kesalahan sistem: {str(e)}"}],
+    #         }
 
-    def handle_error(self, error: Exception) -> Dict[str, Any]:
-        """
-        Handle errors in a user-friendly way
+    # def handle_error(self, error: Exception) -> Dict[str, Any]:
+    #     """
+    #     Handle errors in a user-friendly way
 
-        Args:
-            error: The exception that occurred
+    #     Args:
+    #         error: The exception that occurred
 
-        Returns:
-            Dict containing error message in proper format
-        """
-        error_msg = "Mohon maaf, "
-        if isinstance(error, requests.exceptions.RequestException):
-            error_msg += "terjadi masalah koneksi ke layanan. Silakan coba lagi."
-        elif isinstance(error, json.JSONDecodeError):
-            error_msg += (
-                "format data tidak valid. Tim kami sedang memperbaiki masalah ini."
-            )
-        else:
-            error_msg += "terjadi kesalahan. Silakan coba lagi nanti."
+    #     Returns:
+    #         Dict containing error message in proper format
+    #     """
+    #     error_msg = "Mohon maaf, "
+    #     if isinstance(error, requests.exceptions.RequestException):
+    #         error_msg += "terjadi masalah koneksi ke layanan. Silakan coba lagi."
+    #     elif isinstance(error, json.JSONDecodeError):
+    #         error_msg += (
+    #             "format data tidak valid. Tim kami sedang memperbaiki masalah ini."
+    #         )
+    #     else:
+    #         error_msg += "terjadi kesalahan. Silakan coba lagi nanti."
 
-        return {"role": "assistant", "parts": [{"text": error_msg}]}
+    #     return {"role": "assistant", "parts": [{"text": error_msg}]}
 
 
 # Initialize the agent
